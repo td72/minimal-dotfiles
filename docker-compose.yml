@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Interactive development container
+  dev:
+    build:
+      context: .
+      target: base
+    image: minimal-dotfiles:dev
+    container_name: dotfiles-dev
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./config:/home/testuser/dotfiles/config:ro
+      - ./setup.sh:/home/testuser/dotfiles/setup.sh:ro
+    command: /bin/bash
+
+  # Test runner container
+  test:
+    build:
+      context: .
+      target: test
+    image: minimal-dotfiles:test
+    container_name: dotfiles-test
+    volumes:
+      - ./config:/home/testuser/dotfiles/config:ro
+      - ./setup.sh:/home/testuser/dotfiles/setup.sh:ro
+      - ./test.sh:/home/testuser/dotfiles/test.sh:ro
+
+  # Ubuntu test environment
+  ubuntu:
+    build:
+      context: .
+      target: base
+      args:
+        BASE_IMAGE: ubuntu:24.04
+    image: minimal-dotfiles:ubuntu
+    container_name: dotfiles-ubuntu
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Amazon Linux 2 test environment
+  amazonlinux:
+    build:
+      context: .
+      dockerfile: Dockerfile.amazonlinux
+    image: minimal-dotfiles:amazonlinux
+    container_name: dotfiles-amazonlinux
+    stdin_open: true
+    tty: true
+    command: /bin/bash

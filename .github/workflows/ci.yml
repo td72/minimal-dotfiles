@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-ubuntu:
+    runs-on: ubuntu-latest
+    name: Test on Ubuntu
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fish tmux vim shellcheck
+
+      - name: Run setup script
+        run: |
+          bash setup.sh
+
+      - name: Verify installation
+        run: |
+          # Check XDG directories
+          test -d "${XDG_CONFIG_HOME:-$HOME/.config}"
+          test -d "${XDG_DATA_HOME:-$HOME/.local/share}"
+          test -d "${XDG_STATE_HOME:-$HOME/.local/state}"
+          test -d "${XDG_CACHE_HOME:-$HOME/.cache}"
+          
+          # Check config files
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/bash/bashrc"
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/vim/vimrc"
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf"
+
+      - name: Run tests
+        run: |
+          chmod +x test.sh
+          ./test.sh
+
+  test-macos:
+    runs-on: macos-latest
+    name: Test on macOS
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install fish tmux vim shellcheck
+
+      - name: Run setup script
+        run: |
+          bash setup.sh
+
+      - name: Verify installation
+        run: |
+          # Check XDG directories
+          test -d "${XDG_CONFIG_HOME:-$HOME/.config}"
+          test -d "${XDG_DATA_HOME:-$HOME/.local/share}"
+          test -d "${XDG_STATE_HOME:-$HOME/.local/state}"
+          test -d "${XDG_CACHE_HOME:-$HOME/.cache}"
+          
+          # Check config files
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/bash/bashrc"
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/vim/vimrc"
+          test -f "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf"
+
+      - name: Run tests
+        run: |
+          chmod +x test.sh
+          ./test.sh
+
+  test-docker:
+    runs-on: ubuntu-latest
+    name: Test in Docker
+    strategy:
+      matrix:
+        image:
+          - ubuntu
+          - amazonlinux
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and test ${{ matrix.image }}
+        run: |
+          if [ "${{ matrix.image }}" = "amazonlinux" ]; then
+            docker build -f Dockerfile.amazonlinux -t test-${{ matrix.image }} .
+          else
+            docker build --target base -t test-${{ matrix.image }} .
+          fi
+          docker run --rm test-${{ matrix.image }} bash -c "cd /home/testuser/dotfiles && bash test.sh"
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    name: ShellCheck
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          check_together: yes
+          scandir: '.'
+          ignore_paths: 'config'
+
+  lint-dockerfile:
+    runs-on: ubuntu-latest
+    name: Lint Dockerfiles
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Lint Dockerfile.amazonlinux
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile.amazonlinux

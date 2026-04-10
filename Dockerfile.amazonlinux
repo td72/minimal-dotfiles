@@ -1,0 +1,41 @@
+# Amazon Linux 2 test environment
+FROM amazonlinux:2 AS base
+
+# Install necessary packages
+RUN yum update -y && yum install -y \
+    bash \
+    vim \
+    tmux \
+    git \
+    curl \
+    sudo \
+    shadow-utils \
+    which \
+    && yum clean all
+
+# Install fish (requires EPEL repository)
+RUN amazon-linux-extras install -y epel && \
+    yum install -y fish && \
+    yum clean all
+
+# Create test user
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser:password" | chpasswd && \
+    usermod -aG wheel testuser
+
+# Configure sudo for wheel group
+RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to test user
+USER testuser
+WORKDIR /home/testuser
+
+# Copy dotfiles
+COPY --chown=testuser:testuser . /home/testuser/dotfiles/
+
+# Run setup script
+RUN cd /home/testuser/dotfiles && \
+    bash setup.sh
+
+# Default command
+CMD ["/bin/bash"]
