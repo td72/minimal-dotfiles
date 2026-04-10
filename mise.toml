@@ -1,0 +1,8 @@
+[tools]
+shellcheck = "latest"
+hadolint = "latest"
+prek = "latest"
+
+[tasks.lint]
+description = "Run pre-commit hooks on all files"
+run = "prek run --all-files"
