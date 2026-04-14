@@ -31,7 +31,7 @@ jobs:
           test -d "${XDG_DATA_HOME:-$HOME/.local/share}"
           test -d "${XDG_STATE_HOME:-$HOME/.local/state}"
           test -d "${XDG_CACHE_HOME:-$HOME/.cache}"
-          
+
           # Check config files
           test -f "${XDG_CONFIG_HOME:-$HOME/.config}/bash/bashrc"
           test -f "${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"
@@ -65,7 +65,7 @@ jobs:
           test -d "${XDG_DATA_HOME:-$HOME/.local/share}"
           test -d "${XDG_STATE_HOME:-$HOME/.local/state}"
           test -d "${XDG_CACHE_HOME:-$HOME/.cache}"
-          
+
           # Check config files
           test -f "${XDG_CONFIG_HOME:-$HOME/.config}/bash/bashrc"
           test -f "${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"

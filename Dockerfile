@@ -1,8 +1,10 @@
 # Multi-stage build for testing minimal dotfiles
 FROM ubuntu:24.04 AS base
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Install necessary packages
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     fish \
     vim \
@@ -25,8 +27,8 @@ WORKDIR /home/testuser
 COPY --chown=testuser:testuser . /home/testuser/dotfiles/
 
 # Run setup script
-RUN cd /home/testuser/dotfiles && \
-    bash setup.sh
+WORKDIR /home/testuser/dotfiles
+RUN bash setup.sh
 
 # Default command
 CMD ["/bin/bash"]
@@ -35,7 +37,7 @@ CMD ["/bin/bash"]
 FROM base AS test
 
 USER root
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     shellcheck \
     && rm -rf /var/lib/apt/lists/*
 

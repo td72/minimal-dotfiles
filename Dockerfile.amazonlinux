@@ -1,6 +1,8 @@
 # Amazon Linux 2 test environment
 FROM amazonlinux:2 AS base
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Install necessary packages
 RUN yum update -y && yum install -y \
     bash \
@@ -34,8 +36,8 @@ WORKDIR /home/testuser
 COPY --chown=testuser:testuser . /home/testuser/dotfiles/
 
 # Run setup script
-RUN cd /home/testuser/dotfiles && \
-    bash setup.sh
+WORKDIR /home/testuser/dotfiles
+RUN bash setup.sh
 
 # Default command
 CMD ["/bin/bash"]
